@@ -2,10 +2,8 @@ import re
 import json
 import maya
 import click
-import textwrap
 
 from wcwidth import wcswidth
-from emoji import emoji_count
 from twarc import ensure_flattened
 
 @click.command('text')
@@ -50,11 +48,10 @@ def _text(tweet, width):
 
     # add the text of the tweet
     tweet_text = tweet['text']
-    extra_width = wcswidth(tweet_text) - len(tweet_text)
     body.extend(
         map(
             lambda s: _border(s, width), 
-            textwrap.wrap(
+            _textwrap(
                 tweet_text,
                 width=width - 4
             )
@@ -67,7 +64,7 @@ def _text(tweet, width):
     # the date
     created = maya.parse(tweet['created_at'])
     m = tweet['public_metrics']
-    metrics = f'  ♡ {m["like_count"]}  ♺ {m["retweet_count"]}  ↶ {m["reply_count"]}  "" {m["quote_count"]}'
+    metrics = f'  ♡ {m["like_count"]}  ♺ {m["retweet_count"]}  ↶ {m["reply_count"]}  « {m["quote_count"]}'
     body.append(
         _border(
             click.style(
@@ -86,5 +83,29 @@ def _text(tweet, width):
 
 def _border(text, width):
     text_no_colors = click.unstyle(text)
-    margin = (width - len(text_no_colors) - 4 - emoji_count(text_no_colors)) * ' '
+    margin = (width - wcswidth(text_no_colors) - 4) * ' '
     return f'┃ {text}{margin} ┃'
+
+def _textwrap(s, width):
+    if '\n' in s:
+        parts = s.split('\n', 1)
+        return _textwrap(parts[0], width) + [''] + _textwrap(parts[1], width)
+
+    words = re.split(r'(\s+)', s)
+    lines = []
+    line = ''
+    while len(words) > 0:
+        word = words.pop(0)
+        if wcswidth(line) + wcswidth(word) > width:
+            lines.append(line)
+            line = word
+        elif line == '':
+            line = word
+        else:
+            line += word
+
+    if line != '':
+        lines.append(line)
+
+    return lines
+
