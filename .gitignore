@@ -1,0 +1,8 @@
+.eggs
+dist
+twarc_text.egg-info/
+Pipfile
+Pipfile.lock
+__pycache__
+build
+.env
