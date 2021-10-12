@@ -1,4 +1,5 @@
 import re
+import html
 import json
 import maya
 import click
@@ -47,7 +48,7 @@ def _text(tweet, width):
     body.append(_border('', width))
 
     # add the text of the tweet
-    tweet_text = tweet['text']
+    tweet_text = html.unescape(tweet['text'])
     body.extend(
         map(
             lambda s: _border(s, width), 
@@ -64,7 +65,12 @@ def _text(tweet, width):
     # the date
     created = str(maya.parse(tweet['created_at']))
     m = tweet['public_metrics']
-    metrics = f'♡ {m["like_count"]}  ♺ {m["retweet_count"]}  ↶ {m["reply_count"]}  « {m["quote_count"]}'
+    metrics = (
+        f'♡ {m["like_count"]}  '
+        f'♺ {m["retweet_count"]}  '
+        f'↶ {m["reply_count"]}  '
+        f'« {m["quote_count"]}'
+    )
 
     padding = (width - 4 - wcswidth(created + metrics)) * ' '
 
@@ -90,7 +96,7 @@ def _border(text, width):
     return f'┃ {text}{margin} ┃'
 
 def _textwrap(s, width):
-    # would be nice to use textwrap module here but we need to factor in
+    # it would be nice to use textwrap module here but we need to factor in
     # the actual terminal display of unicode characters when splitting
     if '\n' in s:
         parts = s.split('\n', 1)
@@ -100,12 +106,31 @@ def _textwrap(s, width):
     lines = []
     line = ''
     while len(words) > 0:
+
+        # get the next word 
         word = words.pop(0)
-        if wcswidth(line) + wcswidth(word) > width:
+
+        # the word needs to be split
+        if wcswidth(word) > width:
+
+            # figure out where to break
+            for pos in range(0, len(word)):
+                if wcswidth(word[0:pos]) >= width - 4:
+                    break
+
+            lines.append(word[0:pos])
+            words.insert(0, word[pos:])
+
+        # the word caused the line to wrap
+        elif wcswidth(line) + wcswidth(word) > width:
             lines.append(line)
             line = word
+
+        # this is the first word on the line
         elif line == '':
             line = word
+
+        # just adding another word to the line
         else:
             line += word
 
