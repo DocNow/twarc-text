@@ -9,7 +9,7 @@ make it better!
 
 ## Install
 
-    pip install twarc-text
+    pip3 install twarc-text
 
 ## Use
 
