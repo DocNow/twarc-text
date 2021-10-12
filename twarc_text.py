@@ -37,7 +37,7 @@ def _text(tweet, width):
                 '@' + tweet['author']['username'] + 
                 ' - ' + 
                 tweet['author']['name'], 
-                fg='green'
+                fg='yellow'
             ),
             width
         )
@@ -62,14 +62,17 @@ def _text(tweet, width):
     body.append(_border('', width))
 
     # the date
-    created = maya.parse(tweet['created_at'])
+    created = str(maya.parse(tweet['created_at']))
     m = tweet['public_metrics']
-    metrics = f'  ♡ {m["like_count"]}  ♺ {m["retweet_count"]}  ↶ {m["reply_count"]}  « {m["quote_count"]}'
+    metrics = f'♡ {m["like_count"]}  ♺ {m["retweet_count"]}  ↶ {m["reply_count"]}  « {m["quote_count"]}'
+
+    padding = (width - 4 - wcswidth(created + metrics)) * ' '
+
     body.append(
         _border(
             click.style(
-                str(created) + 
-                ' ' +  
+                created + 
+                padding + 
                 metrics,
                 fg='green'
             ),
@@ -87,6 +90,8 @@ def _border(text, width):
     return f'┃ {text}{margin} ┃'
 
 def _textwrap(s, width):
+    # would be nice to use textwrap module here but we need to factor in
+    # the actual terminal display of unicode characters when splitting
     if '\n' in s:
         parts = s.split('\n', 1)
         return _textwrap(parts[0], width) + [''] + _textwrap(parts[1], width)
