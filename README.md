@@ -1,8 +1,9 @@
 # twarc-text
 
 This module extends [twarc] to allow you to print out tweets as text for easy
-testing on the command line. It's really just a gimmick. Send a PR to make it
-better!
+testing on the command line. Maybe it's useful for spot checking files you've
+collected, or your search queries. It's really just a gimmick :) Send a PR to
+make it better!
 
 ![twarc-text](./images/screencap.gif)
 
